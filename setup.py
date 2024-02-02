@@ -6,6 +6,7 @@ with open('README.rst') as readme_file:
 requirements = [
     'girder>=3.2.0',
     'girder-jobs>=3.2.0',
+    'girder-client>=3.2.0',
 ]
 
 setup(

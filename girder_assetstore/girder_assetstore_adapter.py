@@ -1,5 +1,6 @@
 from girder.exceptions import ValidationException
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
+from girder_client import GirderClient, AuthenticationError
 
 GIRDER_ASSETSTORE_META_KEY = 'girder_assetstore_meta'
 
@@ -11,35 +12,44 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def __init__(self, assetstore):
         super().__init__(assetstore)
+        # TODO: add better checking for doc parameters
+        if 'url' in self.assetstore_meta:
+            self.client = GirderClient(host=self.assetstore_meta['url'])
+
+    @property
+    def assetstore_meta(self):
+        return self.assetstore[GIRDER_ASSETSTORE_META_KEY]
 
     @staticmethod
     def validateInfo(doc):
-        # Ensure that the assetstore is marked read-only
+        meta = doc.get(GIRDER_ASSETSTORE_META_KEY, {})
+
+        # TODO: remove this assumption (?)
+        # ensure that the assetstore is marked read-only
         doc['readOnly'] = True
 
-        required_fields = [
-            'url',
-        ]
-
-        info = doc.get(GIRDER_ASSETSTORE_META_KEY, {})
-
-        for field in required_fields:
-            if field not in info:
-                raise ValidationException(f'Missing field {field}')
+        if 'url' not in meta:
+            raise ValidationException(f'Must specify a "url" for remote Girder assetstore')
 
         convert_empty_fields_to_none = [
             'username',
             'password',
-            'path_prefix',
+            'prefix',
         ]
 
         for field in convert_empty_fields_to_none:
-            if isinstance(info.get(field), str) and not info[field].strip():
-                info[field] = None
+            if isinstance(meta.get(field), str) and not meta[field].strip():
+                meta[field] = None
 
-        # Verify that we can connect to the server
-        # TODO: add this validation
+        # verify that we can connect to the server
+        client = GirderClient(host=meta['url'])
+        try:
+            user = client.authenticate(username=meta['username'], password=meta['password'])
+            # TODO: add check for prefix existence
+        except:
+            raise ValidationException('Failed to authenticate with the remote Girder server')
 
+        doc[GIRDER_ASSETSTORE_META_KEY] = meta
         return doc
 
     def initUpload(self, upload):
@@ -52,7 +62,7 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         return
 
     def deleteFile(self, file):
-        # We don't actually need to do anything special
+        # we don't actually need to do anything special
         return
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,

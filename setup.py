@@ -30,7 +30,7 @@ setup(
     keywords='girder-plugin, girder_assetstore',
     name='girder_assetstore',
     packages=find_packages(exclude=['test', 'test.*']),
-    url='https://github.com/girder/girder_assetstore',
+    url='https://github.com/DigitalSlideArchive/girder_assetstore',
     version='0.1.0',
     zip_safe=False,
     entry_points={

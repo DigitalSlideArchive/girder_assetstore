@@ -3,6 +3,9 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import TokenScope
 from girder.models.assetstore import Assetstore
+from girder.utility import assetstore_utilities
+from girder.utility.model_importer import ModelImporter
+from girder.utility.progress import ProgressContext
 
 class GirderAssetstoreResource(Resource):
     def __init__(self):
@@ -26,5 +29,11 @@ class GirderAssetstoreResource(Resource):
     )
     def importData(self, assetstore, destinationId, destinationType, progress):
         user = self.getCurrentUser()
-        # TODO: add implementation
-        return None
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+
+        if destinationType != 'folder':
+            raise Exception('Only folder destinations are supported currently. TODO: make this more general')
+        parent = ModelImporter.model(destinationType).load(destinationId, force=True, exc=True)
+
+        with ProgressContext(progress, user=user, title='Importing data') as ctx:
+            adapter.importData(parent, destinationType, params={}, progress=ctx, user=user)

@@ -1,9 +1,9 @@
 from girder.exceptions import ValidationException
-from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from girder_client import GirderClient, AuthenticationError
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
+from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
+from girder_client import AuthenticationError, GirderClient
 
 GIRDER_ASSETSTORE_META_KEY = 'girder_assetstore_meta'
 
@@ -49,7 +49,7 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         try:
             user = client.authenticate(username=meta['username'], password=meta['password'])
             # TODO: add check for prefix existence
-        except:
+        except Exception:
             raise ValidationException('Failed to authenticate with the remote Girder server')
 
         doc[GIRDER_ASSETSTORE_META_KEY] = meta
@@ -89,7 +89,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         :type contentDisposition: str or None
         """
         return
-
 
     def _importData(self, parent, parentType, src_path, params, progress, user):
         progress.update(message=f'Importing {src_path}')
@@ -147,7 +146,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
             next_path = f'{src_path}/{folder["name"]}'
             self._importData(folder, 'folder', next_path, params, progress, user)
 
-
     def importData(self, parent, parentType, params, progress, user, **kwargs):
         """
         Import Girder data from a remote Girder server.
@@ -162,7 +160,9 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         :param user: The Girder user performing the import.
         :type user: dict or None
         """
-        self.client.authenticate(username=self.assetstore_meta['username'], password=self.assetstore_meta['password'])
+        self.client.authenticate(
+            username=self.assetstore_meta['username'],
+            password=self.assetstore_meta['password'])
 
         base_path = params.get('importPath')
         base_path = f'/{self.assetstore_meta["prefix"]}/{base_path}'.strip('/')

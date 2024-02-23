@@ -1,5 +1,4 @@
-from girder import plugin
-from girder import events
+from girder import events, plugin
 from girder.api.v1.assetstore import Assetstore as AssetstoreResource
 from girder.constants import AssetstoreType
 from girder.models.assetstore import Assetstore
@@ -7,6 +6,7 @@ from girder.utility.assetstore_utilities import setAssetstoreAdapter
 
 from .girder_assetstore_adapter import GIRDER_ASSETSTORE_META_KEY, GirderAssetstoreAdapter
 from .rest import GirderAssetstoreResource
+
 
 def createAssetstore(event):
     """

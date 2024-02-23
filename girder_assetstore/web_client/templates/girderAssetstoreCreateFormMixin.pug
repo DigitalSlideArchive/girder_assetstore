@@ -1,0 +1,32 @@
+mixin g-gas-parameters(label_key)
+  - const key = label_key;
+
+  //- We need to make sure the html elements all have unique ids when this
+  //- mixin is reused in different places, so that we can locate the correct
+  //- html elements in the script.
+  - const url_id = `g-${key}-gas-url`;
+  - const username_id = `g-${key}-gas-username`;
+  - const password_id = `g-${key}-gas-password`;
+  - const path_prefix_id = `g-${key}-gas-path-prefix`;
+
+  .form-group
+    label.control-label(for=url_id) Girder remote URL
+    input.input-sm.form-control(
+        id=url_id,
+        type="text",
+        placeholder="URL")
+    label.control-label(for=username) Girder Username
+    input.input-sm.form-control(
+        id=username_id,
+        type="text",
+        placeholder="Username")
+    label.control-label(for=password) Girder Password
+    input.input-sm.form-control(
+        id=password_id,
+        type="password",
+        placeholder="Password")
+    label.control-label(for=password) Girder path prefix
+    input.input-sm.form-control(
+        id=path_prefix_id,
+        type="text",
+        placeholder="Path prefix")

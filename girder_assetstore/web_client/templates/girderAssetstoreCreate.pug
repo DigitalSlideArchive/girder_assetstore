@@ -1,0 +1,26 @@
+include girderAssetstoreCreateFormMixin
+
+.panel.panel-default
+  .panel-heading(
+      data-toggle="collapse",
+      data-parent="#g-assetstore-accordion",
+      data-target="#g-create-gas-tab")
+    .panel-title
+      a
+        i.icon-server
+        span Create new #[b Girder] assetstore
+  #g-create-gas-tab.panel-collapse.collapse
+    .panel-body
+      p.
+        The Girder assetstore can be used to import data from a remote Girder
+        instance. Provide the url to the remote Girder instance and valid
+        username and password credentials to create a new assetstore.
+      form#g-new-gas-form(role="form")
+        label.control-label(for="g-new-gas-name") Assetstore name
+        input#g-new-gas-name.input-sm.form-control(
+            type="text",
+            placeholder="Name")
+        +g-gas-parameters("new")
+        p#g-new-gas-error.g-validation-failed-message
+        input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
+          type="submit", value="Create")

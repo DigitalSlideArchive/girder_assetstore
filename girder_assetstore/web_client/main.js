@@ -1,1 +1,5 @@
-console.log('Loaded girder_assetstore!');
+import './constants';
+
+import './views/AssetstoresView';
+import './views/NewAssetstoreWidget';
+import './views/EditAssetstoreWidget';

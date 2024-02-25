@@ -16,7 +16,7 @@ wrap(AssetstoresView, 'render', function (render) {
         const assetstore = this.collection.get($el.attr('cid'));
 
         $el.parent().find('.g-assetstore-buttons').append(
-            GirderAssetstoreButtonTemplate({assetstore})
+            GirderAssetstoreButtonTemplate({ assetstore })
         );
     }, this);
 

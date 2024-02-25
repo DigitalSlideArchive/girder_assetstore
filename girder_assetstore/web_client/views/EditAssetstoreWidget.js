@@ -13,7 +13,7 @@ wrap(EditAssetstoreWidget, 'render', function (render) {
     if (this.model.get('type') === AssetstoreType.GIRDER) {
         this.$('.g-assetstore-form-fields').append(
             GirderAssetstoreEditFieldsTemplate({
-                assetstore: this.model,
+                assetstore: this.model
             })
         );
     }
@@ -26,7 +26,7 @@ EditAssetstoreWidget.prototype.fieldsMap[AssetstoreType.GIRDER] = {
             url: this.$('#g-new-gas-url').val(),
             username: this.$('#g-new-gas-username').val(),
             password: this.$('#g-new-gas-password').val(),
-            prefix: this.$('#g-new-gas-path-prefix').val(),
+            prefix: this.$('#g-new-gas-path-prefix').val()
         };
     },
     set: function () {

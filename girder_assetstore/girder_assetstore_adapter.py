@@ -1,14 +1,15 @@
+from girder.api.rest import setResponseHeader
 from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder_client import AuthenticationError, GirderClient
-from girder.api.rest import setResponseHeader
 
 BUF_SIZE = 65536
 
 GIRDER_ASSETSTORE_META_KEY = 'girder_assetstore_meta'
+
 
 class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
     """
@@ -88,7 +89,11 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         params = {key: val for key, val in params.items() if val is not None}
 
         src_file_id = file['girderRemoteSource']
-        req = self.client.sendRestRequest('get', f'file/{src_file_id}/download', stream=True, parameters=params)
+        req = self.client.sendRestRequest(
+            'get',
+            f'file/{src_file_id}/download',
+            stream=True,
+            parameters=params)
 
         def stream():
             for chunk in req.iter_content(chunk_size=BUF_SIZE):

@@ -1,9 +1,12 @@
+from girder.api.rest import setResponseHeader
 from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder_client import AuthenticationError, GirderClient
+
+BUF_SIZE = 65536
 
 GIRDER_ASSETSTORE_META_KEY = 'girder_assetstore_meta'
 
@@ -70,8 +73,33 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
                      contentDisposition=None, extraParameters=None, **kwargs):
+        if endByte is None or endByte > file['size']:
+            endByte = file['size']
 
-        return
+        if headers:
+            setResponseHeader('Accept-Ranges', 'bytes')
+            self.setContentHeaders(file, offset, endByte, contentDisposition)
+
+        params = {
+            'offset': offset,
+            'endByte': endByte,
+            'contentDisposition': contentDisposition,
+            'extraParameters': extraParameters
+        }
+        params = {key: val for key, val in params.items() if val is not None}
+
+        src_file_id = file['girderRemoteSource']
+        req = self.client.sendRestRequest(
+            'get',
+            f'file/{src_file_id}/download',
+            stream=True,
+            parameters=params)
+
+        def stream():
+            for chunk in req.iter_content(chunk_size=BUF_SIZE):
+                yield chunk
+
+        return stream
 
     def setContentHeaders(self, file, offset, endByte, contentDisposition=None):
         """

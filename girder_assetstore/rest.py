@@ -17,7 +17,7 @@ class GirderAssetstoreResource(Resource):
     @access.admin(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Import data from a remote GirderAssetstore instance')
-        .modelParam('id', model=Assetstore)
+        .modelParam('id', 'The ID of the Girder Assetstore.', model=Assetstore)
         .param('destinationId', 'The ID of the parent folder, collection, or user '
                'in the Girder data hierarchy under which to import the files.')
         .param('destinationType', 'The type of the parent object to import into.',

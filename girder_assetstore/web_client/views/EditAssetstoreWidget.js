@@ -23,17 +23,17 @@ wrap(EditAssetstoreWidget, 'render', function (render) {
 EditAssetstoreWidget.prototype.fieldsMap[AssetstoreType.GIRDER] = {
     get: function () {
         return {
-            url: this.$('#g-new-gas-url').val(),
-            username: this.$('#g-new-gas-username').val(),
-            password: this.$('#g-new-gas-password').val(),
-            prefix: this.$('#g-new-gas-path-prefix').val()
+            url: this.$('#g-edit-gas-url').val(),
+            username: this.$('#g-edit-gas-username').val(),
+            password: this.$('#g-edit-gas-password').val(),
+            prefix: this.$('#g-edit-gas-path-prefix').val()
         };
     },
     set: function () {
-        const girderInfo = this.model.get('girder_meta');
-        this.$('#g-edit-gas-url').val(girderInfo.url);
-        this.$('#g-edit-gas-username').val(girderInfo.username);
-        this.$('#g-edit-gas-password').val(girderInfo.password);
-        this.$('#g-edit-gas-path-prefix').val(girderInfo.prefix);
+        const metadata = this.model.get('girder_assetstore_meta');
+        this.$('#g-edit-gas-url').val(metadata.url);
+        this.$('#g-edit-gas-username').val(metadata.username);
+        this.$('#g-edit-gas-password').val(metadata.password);
+        this.$('#g-edit-gas-path-prefix').val(metadata.prefix);
     }
 };

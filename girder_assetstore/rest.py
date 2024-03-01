@@ -18,6 +18,8 @@ class GirderAssetstoreResource(Resource):
     @autoDescribeRoute(
         Description('Import data from a remote GirderAssetstore instance')
         .modelParam('id', 'The ID of the Girder Assetstore.', model=Assetstore)
+        .param('importPath', 'Path to the data to import on the remote server.'
+               'This is a path relative to the path prefix of the assetstore.',)
         .param('destinationId', 'The ID of the parent folder, collection, or user '
                'in the Girder data hierarchy under which to import the files.')
         .param('destinationType', 'The type of the parent object to import into.',
@@ -28,7 +30,7 @@ class GirderAssetstoreResource(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403),
     )
-    def importData(self, assetstore, destinationId, destinationType, progress):
+    def importData(self, assetstore, importPath, destinationId, destinationType, progress):
         user = self.getCurrentUser()
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
 
@@ -38,4 +40,11 @@ class GirderAssetstoreResource(Resource):
         parent = ModelImporter.model(destinationType).load(destinationId, force=True, exc=True)
 
         with ProgressContext(progress, user=user, title='Importing data') as ctx:
-            adapter.importData(parent, destinationType, params={}, progress=ctx, user=user)
+            adapter.importData(
+                parent,
+                destinationType,
+                params={
+                    'importPath': importPath
+                },
+                progress=ctx,
+                user=user)

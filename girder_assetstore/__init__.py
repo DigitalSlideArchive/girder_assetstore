@@ -22,9 +22,10 @@ def createAssetstore(event):
             'name': params.get('name'),
             GIRDER_ASSETSTORE_META_KEY: {
                 'url': params['url'],
+                'prefix': params.get('prefix'),
+                'apiKey': params.get('apiKey'),
                 'username': params.get('username'),
                 'password': params.get('password'),
-                'prefix': params.get('prefix'),
             },
         }))
         event.preventDefault()
@@ -42,9 +43,10 @@ def updateAssetstore(event):
     if store['type'] == AssetstoreType.GIRDER:
         store[GIRDER_ASSETSTORE_META_KEY] = {
             'url': params['url'],
+            'prefix': params.get('prefix'),
+            'apiKey': params.get('apiKey'),
             'username': params.get('username'),
             'password': params.get('password'),
-            'prefix': params.get('prefix'),
         }
 
 
@@ -63,8 +65,9 @@ class GirderPlugin(plugin.GirderPlugin):
 
         (AssetstoreResource.createAssetstore.description
             .param('url', 'The base URL for the remote Girder server', required=True)
-            .param('username', 'The username to use for authentication', required=True)
-            .param('password', 'The password to use for authentication', required=True)
-            .param('prefix', 'The path prefix to use for all requests', required=True))
+            .param('prefix', 'The path prefix to use for all requests', required=True)
+            .param('apiKey', 'A Girder API Key used for authentication', required=False)
+            .param('username', 'A Girder username useed for authentication', required=False)
+            .param('password', 'A Girder password useed for authentication', required=False))
 
         info['apiRoot'].girder_assetstore = GirderAssetstoreResource()

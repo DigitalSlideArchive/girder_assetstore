@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-with open('README.rst') as readme_file:
+with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
@@ -14,7 +14,7 @@ setup(
     version='0.1.0',
     description='A Girder plugin to connect remote Girder instances as Assetstores.',
     long_description=readme,
-    long_description_content_type='text/x-rst',
+    long_description_content_type='text/markdown',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
     classifiers=[

@@ -4,7 +4,7 @@ from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from girder_client import AuthenticationError, GirderClient
+from girder_client import GirderClient
 
 BUF_SIZE = 65536
 
@@ -13,14 +13,17 @@ GIRDER_ASSETSTORE_META_KEY = 'girder_assetstore_meta'
 
 class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
     """
-    Assetstore adapter for external girder assetstores
+    Assetstore adapter for external Girder assetstores.
+
+    Connect using remote Girder API url, username, and password.
+    Specify a path prefix to set the root path of the remote assetstore.
     """
 
     def __init__(self, assetstore):
         super().__init__(assetstore)
         # TODO: add better checking for doc parameters
         if 'url' in self.assetstore_meta:
-            self.client = GirderClient(host=self.assetstore_meta['url'])
+            self.client = GirderClient(apiUrl=self.assetstore_meta['url'])
 
     @property
     def assetstore_meta(self):
@@ -35,7 +38,7 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         doc['readOnly'] = True
 
         if 'url' not in meta:
-            raise ValidationException(f'Must specify a "url" for remote Girder assetstore')
+            raise ValidationException('Must specify a "url" for remote Girder assetstore')
 
         convert_empty_fields_to_none = [
             'username',
@@ -48,9 +51,9 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
                 meta[field] = None
 
         # verify that we can connect to the server
-        client = GirderClient(host=meta['url'])
+        client = GirderClient(apiUrl=meta['url'])
         try:
-            user = client.authenticate(username=meta['username'], password=meta['password'])
+            client.authenticate(username=meta['username'], password=meta['password'])
             # TODO: add check for prefix existence
         except Exception:
             raise ValidationException('Failed to authenticate with the remote Girder server')
@@ -63,9 +66,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def finalizeUpload(self, upload, file):
         raise NotImplementedError('Girder assetstores are import only.')
-
-    def getFileSize(self, file):
-        return
 
     def deleteFile(self, file):
         # we don't actually need to do anything special
@@ -88,11 +88,13 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         }
         params = {key: val for key, val in params.items() if val is not None}
 
-        src_file_id = file['girderRemoteSource']
+        src_file_id = file['girderRemoteSourceFile']
+
         req = self.client.sendRestRequest(
             'get',
             f'file/{src_file_id}/download',
             stream=True,
+            jsonResp=False,
             parameters=params)
 
         def stream():
@@ -100,23 +102,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
                 yield chunk
 
         return stream
-
-    def setContentHeaders(self, file, offset, endByte, contentDisposition=None):
-        """
-        Sets the Content-Length, Content-Disposition, Content-Type, and also
-        the Content-Range header if this is a partial download.
-
-        :param file: The file being downloaded.
-        :param offset: The start byte of the download.
-        :type offset: int
-        :param endByte: The end byte of the download (non-inclusive).
-        :type endByte: int or None
-        :param contentDisposition: Content-Disposition response header
-            disposition-type value, if None, Content-Disposition will
-            be set to 'attachment; filename=$filename'.
-        :type contentDisposition: str or None
-        """
-        return
 
     def _importData(self, parent, parentType, src_path, params, progress, user):
         progress.update(message=f'Importing {src_path}')
@@ -133,7 +118,7 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         folders = []
         # create subfolders
         for src_folder in self.client.listFolder(parentId=src_id, parentFolderType=src_type):
-            if self.shouldImportFile(f"{src_path}/{src_item['name']}", params):
+            if self.shouldImportFile(f"{src_path}/{src_folder['name']}", params):
                 folders.append(
                     Folder().createFolder(
                         parent=parent,
@@ -143,7 +128,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
                     )
                 )
 
-        items = []
         # create copies of items in current folder
         for src_item in self.client.listItem(folderId=src_id):
             if self.shouldImportFile(f"{src_path}/{src_item['name']}", params):
@@ -155,19 +139,23 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
                     folder=parent,
                     reuseExisting=True
                 )
+                item['girderRemoteSourceItem'] = src_item['_id']
+                item = Item().save(item)
 
-                file = File().createFile(
-                    item=item,
-                    creator=user,
-                    name=src_item['name'],
-                    size=src_item['size'],
-                    assetstore=self.assetstore,
-                    reuseExisting=True,
-                    saveFile=False
-                )
-                file['girderRemoteSource'] = src_item['_id']
-                file['imported'] = True
-                file = File().save(file)
+                # create new records for all files attached to src_item
+                for src_file in self.client.listFile(itemId=src_item['_id']):
+                    file = File().createFile(
+                        item=item,
+                        creator=user,
+                        name=src_file['name'],
+                        size=src_file['size'],
+                        assetstore=self.assetstore,
+                        reuseExisting=True,
+                        saveFile=False
+                    )
+                    file['girderRemoteSourceFile'] = src_file['_id']
+                    file['imported'] = True
+                    file = File().save(file)
 
         # recurse into subfolders
         for folder in folders:
@@ -193,9 +181,11 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
             password=self.assetstore_meta['password'])
 
         base_path = params.get('importPath')
-        base_path = f'/{self.assetstore_meta["prefix"]}/{base_path}'.strip('/')
+        base_path = f'{self.assetstore_meta["prefix"]}/{base_path}'.rstrip('/')
 
-        # src_type = params.get('resourceType', 'user') # get the resource type ('collection' or 'user')
+        # TODO: add check that base_path is valid
+
+        # src_type = params.get('resourceType', 'user') # get resource type ('collection', 'user')
         # TODO: ensure that self.assetstore_meta['prefix'] contains /collection/... or /user/...
         #       also make sure to remove trailing '/' from the prefix
         #       do this in validateInfo()

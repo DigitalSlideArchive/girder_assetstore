@@ -17,9 +17,10 @@ NewAssetstoreWidget.prototype.events['submit #g-new-gas-form'] = function (e) {
         type: AssetstoreType.GIRDER,
         name: this.$('#g-new-gas-name').val(),
         url: this.$('#g-new-gas-url').val(),
+        prefix: this.$('#g-new-gas-path-prefix').val(),
+        apiKey: this.$('#g-new-gas-api-key').val(),
         username: this.$('#g-new-gas-username').val(),
-        password: this.$('#g-new-gas-password').val(),
-        prefix: this.$('#g-new-gas-path-prefix').val()
+        password: this.$('#g-new-gas-password').val()
     };
 
     this.createAssetstore(e, this.$('#g-new-gas-error'), formBody);

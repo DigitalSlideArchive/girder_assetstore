@@ -16,10 +16,11 @@ include girderAssetstoreCreateFormMixin
         instance. Provide the url to the remote Girder instance and valid
         username and password credentials to create a new assetstore.
       form#g-new-gas-form(role="form")
-        label.control-label(for="g-new-gas-name") Assetstore name
-        input#g-new-gas-name.input-sm.form-control(
-            type="text",
-            placeholder="Name")
+        .form-group
+          label.control-label(for="g-new-gas-name") Assetstore name
+          input#g-new-gas-name.input-sm.form-control(
+              type="text",
+              placeholder="Name")
         +g-gas-parameters("new")
         p#g-new-gas-error.g-validation-failed-message
         input.g-new-assetstore-submit.btn.btn-sm.btn-primary(

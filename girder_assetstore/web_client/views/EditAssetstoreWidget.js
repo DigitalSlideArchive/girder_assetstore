@@ -24,16 +24,18 @@ EditAssetstoreWidget.prototype.fieldsMap[AssetstoreType.GIRDER] = {
     get: function () {
         return {
             url: this.$('#g-edit-gas-url').val(),
+            prefix: this.$('#g-edit-gas-path-prefix').val(),
+            apiKey: this.$('#g-edit-gas-api-key').val(),
             username: this.$('#g-edit-gas-username').val(),
-            password: this.$('#g-edit-gas-password').val(),
-            prefix: this.$('#g-edit-gas-path-prefix').val()
+            password: this.$('#g-edit-gas-password').val()
         };
     },
     set: function () {
         const metadata = this.model.get('girder_assetstore_meta');
         this.$('#g-edit-gas-url').val(metadata.url);
+        this.$('#g-edit-gas-path-prefix').val(metadata.prefix);
+        this.$('#g-edit-gas-api-key').val(metadata.apiKey);
         this.$('#g-edit-gas-username').val(metadata.username);
         this.$('#g-edit-gas-password').val(metadata.password);
-        this.$('#g-edit-gas-path-prefix').val(metadata.prefix);
     }
 };

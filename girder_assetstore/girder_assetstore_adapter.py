@@ -21,9 +21,23 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def __init__(self, assetstore):
         super().__init__(assetstore)
-        # TODO: add better checking for doc parameters
         if 'url' in self.assetstore_meta:
             self.client = GirderClient(apiUrl=self.assetstore_meta['url'])
+
+        self.auth = self.auth_kwargs(self.assetstore_meta)
+
+    @staticmethod
+    def auth_kwargs(meta):
+        def is_set(x):
+            return meta.get(x, '') != ''
+
+        if is_set('apiKey'):
+            return {'apiKey': meta['apiKey']}
+        elif is_set('username') and is_set('password'):
+            return {'username': meta['username'], 'password': meta['password']}
+
+        # if no credientials are specified
+        return None
 
     @property
     def assetstore_meta(self):
@@ -40,23 +54,20 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         if 'url' not in meta:
             raise ValidationException('Must specify a "url" for remote Girder assetstore')
 
-        convert_empty_fields_to_none = [
-            'username',
-            'password',
-            'prefix',
-        ]
-
-        for field in convert_empty_fields_to_none:
-            if isinstance(meta.get(field), str) and not meta[field].strip():
-                meta[field] = None
+        # get authentication credentials
+        auth = GirderAssetstoreAdapter.auth_kwargs(meta)
+        if auth is None:
+            raise ValidationException('Must specify either "apiKey" or "username" and "password"')
 
         # verify that we can connect to the server
         client = GirderClient(apiUrl=meta['url'])
         try:
-            client.authenticate(username=meta['username'], password=meta['password'])
-            # TODO: add check for prefix existence
-        except Exception:
-            raise ValidationException('Failed to authenticate with the remote Girder server')
+            client.authenticate(**auth)
+        except Exception as e:
+            raise ValidationException(f'Failed to authenticate with the remote Girder server: {e}')
+
+        if meta.get('prefix', '') == '':
+            raise ValidationException('Must specify a "prefix" for remote Girder assetstore')
 
         doc[GIRDER_ASSETSTORE_META_KEY] = meta
         return doc
@@ -176,9 +187,7 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         :param user: The Girder user performing the import.
         :type user: dict or None
         """
-        self.client.authenticate(
-            username=self.assetstore_meta['username'],
-            password=self.assetstore_meta['password'])
+        self.client.authenticate(**self.auth)
 
         base_path = params.get('importPath')
         base_path = f'{self.assetstore_meta["prefix"]}/{base_path}'.rstrip('/')

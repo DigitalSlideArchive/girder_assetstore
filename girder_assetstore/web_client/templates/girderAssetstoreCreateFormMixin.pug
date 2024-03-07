@@ -5,9 +5,10 @@ mixin g-gas-parameters(label_key)
   //- mixin is reused in different places, so that we can locate the correct
   //- html elements in the script.
   - const url_id = `g-${key}-gas-url`;
+  - const path_prefix_id = `g-${key}-gas-path-prefix`;
+  - const api_key_id = `g-${key}-gas-api-key`;
   - const username_id = `g-${key}-gas-username`;
   - const password_id = `g-${key}-gas-password`;
-  - const path_prefix_id = `g-${key}-gas-path-prefix`;
 
   .form-group
     label.control-label(for=url_id) Girder remote URL
@@ -15,18 +16,30 @@ mixin g-gas-parameters(label_key)
         id=url_id,
         type="text",
         placeholder="URL")
-    label.control-label(for=username) Girder Username
-    input.input-sm.form-control(
-        id=username_id,
-        type="text",
-        placeholder="Username")
-    label.control-label(for=password) Girder Password
-    input.input-sm.form-control(
-        id=password_id,
-        type="password",
-        placeholder="Password")
+  .form-group
     label.control-label(for=password) Girder path prefix
     input.input-sm.form-control(
         id=path_prefix_id,
         type="text",
         placeholder="Path prefix")
+  hr
+  .form-group
+    label.control-label(for=apiKey) Girder API Key
+    input.input-sm.form-control(
+        id=api_key_id,
+        type="text",
+        placeholder="API Key")
+  .g-bottom-message(style="display: flex; justify-content: center")
+    i or
+  .form-group
+    label.control-label(for=username) Girder Username
+    input.input-sm.form-control(
+        id=username_id,
+        type="text",
+        placeholder="Username")
+  .form-group
+    label.control-label(for=password) Girder Password
+    input.input-sm.form-control(
+        id=password_id,
+        type="password",
+        placeholder="Password")

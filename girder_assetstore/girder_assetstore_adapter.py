@@ -1,3 +1,6 @@
+import collections
+import functools
+
 from girder.api.rest import setResponseHeader
 from girder.exceptions import ValidationException
 from girder.models.file import File
@@ -11,6 +14,26 @@ BUF_SIZE = 65536
 GIRDER_ASSETSTORE_META_KEY = 'girder_assetstore_meta'
 
 
+# provide caching for authenticated GirderClient instances
+@functools.lru_cache()
+def _get_girder_client(assetstore_meta):
+    meta = assetstore_meta._asdict()
+    if 'url' in meta:
+        client = GirderClient(apiUrl=meta['url'])
+        if meta.get('apiKey'):
+            client.authenticate(apiKey=meta['apiKey'])
+        elif meta.get('username') and meta.get('password'):
+            client.authenticate(username=meta['username'], password=meta['password'])
+        return client
+    return None
+
+
+def _meta_to_serial(meta):
+    # convert GirderAssetstoreAdapter metadata to a serializable form
+    SerialMeta = collections.namedtuple('SerialMeta', sorted(meta.keys()))
+    return SerialMeta(**meta)
+
+
 class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
     """
     Assetstore adapter for external Girder assetstores.
@@ -21,27 +44,16 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def __init__(self, assetstore):
         super().__init__(assetstore)
-        if 'url' in self.assetstore_meta:
-            self.client = GirderClient(apiUrl=self.assetstore_meta['url'])
-
-        self.auth = self.auth_kwargs(self.assetstore_meta)
-
-    @staticmethod
-    def auth_kwargs(meta):
-        def is_set(x):
-            return meta.get(x, '') != ''
-
-        if is_set('apiKey'):
-            return {'apiKey': meta['apiKey']}
-        elif is_set('username') and is_set('password'):
-            return {'username': meta['username'], 'password': meta['password']}
-
-        # if no credientials are specified
-        return None
+        self.client
 
     @property
     def assetstore_meta(self):
         return self.assetstore[GIRDER_ASSETSTORE_META_KEY]
+
+    @property
+    def client(self):
+        print('client invoked')
+        return _get_girder_client(_meta_to_serial(self.assetstore_meta))
 
     @staticmethod
     def validateInfo(doc):
@@ -54,17 +66,14 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         if 'url' not in meta:
             raise ValidationException('Must specify a "url" for remote Girder assetstore')
 
-        # get authentication credentials
-        auth = GirderAssetstoreAdapter.auth_kwargs(meta)
-        if auth is None:
-            raise ValidationException('Must specify either "apiKey" or "username" and "password"')
-
-        # verify that we can connect to the server
-        client = GirderClient(apiUrl=meta['url'])
         try:
-            client.authenticate(**auth)
+            # verify that we can connect to the server
+            client = _get_girder_client(_meta_to_serial(meta))
         except Exception as e:
             raise ValidationException(f'Failed to authenticate with the remote Girder server: {e}')
+
+        if client is None:
+            raise ValidationException('Failed to authenticate with the remote Girder server')
 
         if meta.get('prefix', '') == '':
             raise ValidationException('Must specify a "prefix" for remote Girder assetstore')
@@ -187,8 +196,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         :param user: The Girder user performing the import.
         :type user: dict or None
         """
-        self.client.authenticate(**self.auth)
-
         base_path = params.get('importPath')
         base_path = f'{self.assetstore_meta["prefix"]}/{base_path}'.rstrip('/')
 

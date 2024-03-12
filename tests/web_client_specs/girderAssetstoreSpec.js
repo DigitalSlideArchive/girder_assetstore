@@ -50,7 +50,7 @@ describe('Girder assetstore', function () {
             $('#g-new-gas-url').val(url);
             $('#g-new-gas-path-prefix').val('/user/admin/Public');
 
-            $('#g-new-gas-api-key').val('');
+            $('#g-new-gas-api-key').val('bad-key');
             $('#g-new-gas-username').val('');
             $('#g-new-gas-password').val('');
         });
@@ -64,8 +64,7 @@ describe('Girder assetstore', function () {
         }, 'wait for error message to appear');
 
         runs(function () {
-            const expected = 'Must specify either "apiKey" or "username" and "password"';
-            expect($('#g-new-gas-error').html()).toBe(expected);
+            expect($('#g-new-gas-error').html()).toContain('Invalid API key.');
             $('#g-new-gas-error').html(''); // reset
         });
 

@@ -75,9 +75,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         if client is None:
             raise ValidationException('Failed to authenticate with the remote Girder server')
 
-        if meta.get('prefix', '') == '':
-            raise ValidationException('Must specify a "prefix" for remote Girder assetstore')
-
         doc[GIRDER_ASSETSTORE_META_KEY] = meta
         return doc
 

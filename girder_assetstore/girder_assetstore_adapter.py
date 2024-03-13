@@ -52,7 +52,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     @property
     def client(self):
-        print('client invoked')
         return _get_girder_client(_meta_to_serial(self.assetstore_meta))
 
     @staticmethod

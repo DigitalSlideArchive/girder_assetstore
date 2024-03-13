@@ -65,7 +65,7 @@ class GirderPlugin(plugin.GirderPlugin):
 
         (AssetstoreResource.createAssetstore.description
             .param('url', 'The base URL for the remote Girder server', required=True)
-            .param('prefix', 'The path prefix to use for all requests', required=True)
+            .param('prefix', 'The path prefix to use for all requests', required=False)
             .param('apiKey', 'A Girder API Key used for authentication', required=False)
             .param('username', 'A Girder username useed for authentication', required=False)
             .param('password', 'A Girder password useed for authentication', required=False))

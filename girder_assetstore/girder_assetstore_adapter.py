@@ -7,7 +7,7 @@ from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from girder_client import GirderClient
+from girder_client import GirderClient, HttpError
 
 BUF_SIZE = 65536
 
@@ -122,8 +122,13 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
     def _importData(self, parent, parentType, src_path, params, progress, user):
         progress.update(message=f'Importing {src_path}')
 
-        # get source metadata
-        src_meta = self.client.get('resource/lookup', parameters={'path': src_path})
+        try:
+            # get source metadata
+            src_meta = self.client.get('resource/lookup', parameters={'path': src_path})
+        except HttpError as e:
+            raise ValidationException(
+                f'Could not resolve path {src_path} on remote Girder server: "{e.response.text}"')
+
         src_type = src_meta['_modelType']
         src_id = src_meta['_id']
 

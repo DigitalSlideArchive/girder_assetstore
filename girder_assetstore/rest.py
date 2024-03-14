@@ -1,4 +1,4 @@
-from girder.api import access
+from girder.api import access, filter_logging
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import TokenScope
@@ -13,6 +13,10 @@ class GirderAssetstoreResource(Resource):
         super().__init__()
         self.resourceName = 'girder_assetstore'
         self.route('POST', (':id', 'import'), self.importData)
+
+        filter_logging.addLoggingFilter(
+            'GET (/[^/ ?#]+)*/file/[^/ ?#]+/download\\?offset',
+            frequency=250, duration=10)
 
     @access.admin(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(

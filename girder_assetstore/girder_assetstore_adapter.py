@@ -7,7 +7,7 @@ from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from girder_client import GirderClient
+from girder_client import GirderClient, HttpError
 
 BUF_SIZE = 65536
 
@@ -122,61 +122,73 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
     def _importData(self, parent, parentType, src_path, params, progress, user):
         progress.update(message=f'Importing {src_path}')
 
-        # get source metadata
-        src_meta = self.client.get('resource/lookup', parameters={'path': src_path})
+        try:
+            # get source metadata
+            src_meta = self.client.get('resource/lookup', parameters={'path': src_path})
+        except HttpError as e:
+            raise ValidationException(
+                f'Could not resolve path {src_path} on remote Girder server: "{e.response.text}"')
+
         src_type = src_meta['_modelType']
         src_id = src_meta['_id']
 
-        # TODO: make this more general
-        if src_type != 'folder':
-            raise Exception('Only folders can be imported (currently)')
+        # if the src_type is a folder, import items and files
+        # if src_type in ('collection', 'user'), there are no items/files to import
+        if src_type == 'folder':
+            for src_item in self.client.listItem(folderId=src_id):
+                if self.shouldImportFile(f"{src_path}/{src_item['name']}", params):
+                    progress.update(message=src_item['name'])
 
-        folders = []
-        # create subfolders
-        for src_folder in self.client.listFolder(parentId=src_id, parentFolderType=src_type):
-            if self.shouldImportFile(f"{src_path}/{src_folder['name']}", params):
-                folders.append(
-                    Folder().createFolder(
-                        parent=parent,
-                        name=src_folder['name'],
+                    src_item_description = src_item.get('description', '')
+                    src_item_meta = src_item.get('meta', {})
+
+                    item = Item().createItem(
+                        name=src_item['name'],
+                        description=src_item_description,
                         creator=user,
+                        folder=parent,
                         reuseExisting=True
                     )
-                )
+                    item['girderRemoteSourceItem'] = src_item['_id']
+                    Item().setMetadata(item, src_item_meta)
+                    item = Item().save(item)
 
-        # create copies of items in current folder
-        for src_item in self.client.listItem(folderId=src_id):
-            if self.shouldImportFile(f"{src_path}/{src_item['name']}", params):
-                progress.update(message=src_item['name'])
+                    # create new records for all files attached to src_item
+                    for src_file in self.client.listFile(itemId=src_item['_id']):
+                        file = File().createFile(
+                            item=item,
+                            creator=user,
+                            name=src_file['name'],
+                            size=src_file['size'],
+                            assetstore=self.assetstore,
+                            reuseExisting=True,
+                            saveFile=False
+                        )
+                        file['girderRemoteSourceFile'] = src_file['_id']
+                        file['imported'] = True
+                        file = File().save(file)
 
-                item = Item().createItem(
-                    name=src_item['name'],
+        # import subfolders
+        for src_folder in self.client.listFolder(parentId=src_id, parentFolderType=src_type):
+            if self.shouldImportFile(f"{src_path}/{src_folder['name']}", params):
+                progress.update(message=src_folder['name'])
+
+                src_folder_description = src_folder.get('description', '')
+                src_folder_meta = src_folder.get('meta', {})
+
+                folder = Folder().createFolder(
+                    parent=parent,
+                    name=src_folder['name'],
+                    description=src_folder_description,
                     creator=user,
-                    folder=parent,
                     reuseExisting=True
                 )
-                item['girderRemoteSourceItem'] = src_item['_id']
-                item = Item().save(item)
+                Folder().setMetadata(folder, src_folder_meta)
+                folder = Folder().save(folder)
 
-                # create new records for all files attached to src_item
-                for src_file in self.client.listFile(itemId=src_item['_id']):
-                    file = File().createFile(
-                        item=item,
-                        creator=user,
-                        name=src_file['name'],
-                        size=src_file['size'],
-                        assetstore=self.assetstore,
-                        reuseExisting=True,
-                        saveFile=False
-                    )
-                    file['girderRemoteSourceFile'] = src_file['_id']
-                    file['imported'] = True
-                    file = File().save(file)
-
-        # recurse into subfolders
-        for folder in folders:
-            next_path = f'{src_path}/{folder["name"]}'
-            self._importData(folder, 'folder', next_path, params, progress, user)
+                # recurse into subfolder
+                next_path = f'{src_path}/{folder["name"]}'
+                self._importData(folder, 'folder', next_path, params, progress, user)
 
     def importData(self, parent, parentType, params, progress, user, **kwargs):
         """
@@ -196,10 +208,5 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         base_path = f'{self.assetstore_meta["prefix"]}/{base_path}'.rstrip('/')
 
         # TODO: add check that base_path is valid
-
-        # src_type = params.get('resourceType', 'user') # get resource type ('collection', 'user')
-        # TODO: ensure that self.assetstore_meta['prefix'] contains /collection/... or /user/...
-        #       also make sure to remove trailing '/' from the prefix
-        #       do this in validateInfo()
 
         self._importData(parent, parentType, base_path, params, progress, user)

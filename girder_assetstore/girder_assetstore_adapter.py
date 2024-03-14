@@ -168,8 +168,8 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
             if self.shouldImportFile(f"{src_path}/{src_folder['name']}", params):
                 progress.update(message=src_folder['name'])
 
-                src_folder_description = src_item.get('description', '')
-                src_folder_meta = src_item.get('meta', {})
+                src_folder_description = src_folder.get('description', '')
+                src_folder_meta = src_folder.get('meta', {})
 
                 folder = Folder().createFolder(
                     parent=parent,

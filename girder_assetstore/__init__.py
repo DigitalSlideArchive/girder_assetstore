@@ -64,7 +64,7 @@ class GirderPlugin(plugin.GirderPlugin):
         events.bind('rest.post.assetstore.before', 'girder_assetstore', createAssetstore)
 
         (AssetstoreResource.createAssetstore.description
-            .param('url', 'The base URL for the remote Girder server', required=True)
+            .param('url', 'The base URL for the remote Girder server', required=False)
             .param('prefix', 'The path prefix to use for all requests', required=False)
             .param('apiKey', 'A Girder API Key used for authentication', required=False)
             .param('username', 'A Girder username useed for authentication', required=False)

@@ -5,6 +5,9 @@ import router from '@girder/core/router';
 import View from '@girder/core/views/View';
 import { restRequest } from '@girder/core/rest';
 
+import { assetstoreImportViewMap } from '@girder/core/views/body/AssetstoresView';
+import { AssetstoreType } from '@girder/core/constants';
+
 import AssetstoreImportPage from '../templates/girderAssetstoreImport.pug';
 
 const GirderAssetstoreImportView = View.extend({
@@ -38,7 +41,10 @@ const GirderAssetstoreImportView = View.extend({
         'click .g-open-browser': '_openBrowser'
     },
 
-    initialize: function () {
+    initialize: function (opts) {
+        if (opts && opts.assetstore) {
+            this.model = opts.assetstore;
+        }
         this._browserWidgetView = new BrowserWidget({
             parentView: this,
             titleText: 'Destination',
@@ -78,7 +84,10 @@ const GirderAssetstoreImportView = View.extend({
     },
 
     render: function () {
-        const metadata = this.model.get('girder_assetstore_meta') || {};
+        if (!this.model) {
+            return this;
+        }
+        const metadata = this.model ? this.model.get('girder_assetstore_meta') || {} : {};
 
         this.$el.html(AssetstoreImportPage({
             assetstore: this.model,
@@ -92,5 +101,7 @@ const GirderAssetstoreImportView = View.extend({
         this._browserWidgetView.setElement($('#g-dialog-container')).render();
     }
 });
+
+assetstoreImportViewMap[AssetstoreType.GIRDER] = GirderAssetstoreImportView;
 
 export default GirderAssetstoreImportView;

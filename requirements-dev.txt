@@ -1,5 +1,5 @@
-girder>=3.2.0
-girder-jobs>=3.2.0
+girder>=3.2.3
+girder-jobs>=3.2.3
 
 pip>=9
 tox

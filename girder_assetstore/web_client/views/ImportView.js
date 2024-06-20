@@ -26,7 +26,7 @@ const GirderAssetstoreImportView = View.extend({
             }
 
             this.$('.g-submit-gas-import').addClass('disabled');
-            this.model.off().on('g:imported', function () {
+            this.assetstore.off().on('g:imported', function () {
                 router.navigate(destinationType + '/' + destinationId, { trigger: true });
             }, this).on('g:error', function (err) {
                 this.$('.g-submit-gas-import').removeClass('disabled');
@@ -41,10 +41,11 @@ const GirderAssetstoreImportView = View.extend({
         'click .g-open-browser': '_openBrowser'
     },
 
-    initialize: function (opts) {
-        if (opts && opts.assetstore) {
-            this.model = opts.assetstore;
+    initialize: function (settings) {
+        if (settings && settings.assetstore) {
+            this.assetstore = settings.assetstore;
         }
+
         this._browserWidgetView = new BrowserWidget({
             parentView: this,
             titleText: 'Destination',
@@ -84,13 +85,13 @@ const GirderAssetstoreImportView = View.extend({
     },
 
     render: function () {
-        if (!this.model) {
+        if (!this.assetstore) {
             return this;
         }
-        const metadata = this.model ? this.model.get('girder_assetstore_meta') || {} : {};
+        const metadata = this.assetstore.get('girder_assetstore_meta') || {};
 
         this.$el.html(AssetstoreImportPage({
-            assetstore: this.model,
+            assetstore: this.assetstore,
             metadata
         }));
 

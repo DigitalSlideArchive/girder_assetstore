@@ -7,6 +7,8 @@ from girder.utility import assetstore_utilities
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
 
+from .girder_assetstore_adapter import GirderAssetstoreAdapter
+
 
 class GirderAssetstoreResource(Resource):
     def __init__(self):
@@ -36,7 +38,6 @@ class GirderAssetstoreResource(Resource):
     )
     def importData(self, assetstore, importPath, destinationId, destinationType, progress):
         user = self.getCurrentUser()
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
 
         if destinationType != 'folder':
             raise Exception(
@@ -44,7 +45,7 @@ class GirderAssetstoreResource(Resource):
         parent = ModelImporter.model(destinationType).load(destinationId, force=True, exc=True)
 
         with ProgressContext(progress, user=user, title='Importing data') as ctx:
-            adapter.importData(
+            GirderAssetstoreAdapter(assetstore).importData(
                 parent,
                 destinationType,
                 params={

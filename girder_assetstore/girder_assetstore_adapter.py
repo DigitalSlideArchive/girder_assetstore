@@ -1,6 +1,7 @@
 import collections
 import functools
 
+from girder import logger
 from girder.api.rest import setResponseHeader
 from girder.exceptions import ValidationException
 from girder.models.file import File
@@ -44,7 +45,6 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def __init__(self, assetstore):
         super().__init__(assetstore)
-        self.client
 
     @property
     def assetstore_meta(self):
@@ -52,7 +52,11 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     @property
     def client(self):
-        return _get_girder_client(_meta_to_serial(self.assetstore_meta))
+        try:
+            return _get_girder_client(_meta_to_serial(self.assetstore_meta))
+        except Exception as e:
+            logger.exception(f'Unable to connect to remote Girder client: {e}')
+            return None
 
     @staticmethod
     def validateInfo(doc):
@@ -89,6 +93,10 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
                      contentDisposition=None, extraParameters=None, **kwargs):
+        if self.client is None:
+            logger.error('Failed to connect to remote Girder server')
+            raise ValidationException('Failed to connect to remote Girder server')
+
         if endByte is None or endByte > file['size']:
             endByte = file['size']
 
@@ -204,6 +212,9 @@ class GirderAssetstoreAdapter(AbstractAssetstoreAdapter):
         :param user: The Girder user performing the import.
         :type user: dict or None
         """
+        if self.client is None:
+            raise ValidationException('Failed to connect to remote Girder server')
+
         base_path = params.get('importPath')
         base_path = f'{self.assetstore_meta["prefix"]}/{base_path}'.rstrip('/')
 

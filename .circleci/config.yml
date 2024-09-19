@@ -38,10 +38,10 @@ workflows:
   ci:
     jobs:
       - test
-  nightly:
+  periodic:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: "0 0 * * 3"
           filters:
             branches:
               only:

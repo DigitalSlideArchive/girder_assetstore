@@ -4,9 +4,9 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    'girder>=3.2.3',
-    'girder-jobs>=3.2.3',
-    'girder-client>=3.2.3',
+    'girder>=5.0.0a5.dev168',
+    'girder-jobs>=5.0.0a5.dev168',
+    'girder-client>=5.0.0a5.dev168',
 ]
 
 setup(

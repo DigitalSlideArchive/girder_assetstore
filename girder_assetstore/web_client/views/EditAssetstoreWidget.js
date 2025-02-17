@@ -1,8 +1,9 @@
-import EditAssetstoreWidget from '@girder/core/views/widgets/EditAssetstoreWidget';
-import { AssetstoreType } from '@girder/core/constants';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
+/* global girder */
 import GirderAssetstoreEditFieldsTemplate from '../templates/girderAssetstoreEditFields.pug';
+
+const EditAssetstoreWidget = girder.views.widgets.EditAssetstoreWidget;
+const { AssetstoreType } = girder.constants;
+const { wrap } = girder.utilities.PluginUtils;
 
 /**
  * Adds Girder assetstore-specific fields to the edit dialog.

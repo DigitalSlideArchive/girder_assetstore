@@ -11,7 +11,7 @@ requirements = [
 
 setup(
     name='girder_assetstore',
-    version='0.1.0',
+    version='0.2.0',
     description='A Girder plugin to connect remote Girder instances as Assetstores.',
     long_description=readme,
     long_description_content_type='text/markdown',

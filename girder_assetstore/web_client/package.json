@@ -1,6 +1,6 @@
 {
     "name": "@girder/girder_assetstore",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "private": true,
     "description": "A Girder plugin that allows for other Girder instances to be accessed as Assetstores.",
     "homepage": "https://github.com/girder/girder_assetstore",

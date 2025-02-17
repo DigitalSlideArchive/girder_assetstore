@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from girder import events, plugin
 from girder.api.v1.assetstore import Assetstore as AssetstoreResource
 from girder.constants import AssetstoreType
@@ -71,3 +73,11 @@ class GirderPlugin(plugin.GirderPlugin):
             .param('password', 'A Girder password useed for authentication', required=False))
 
         info['apiRoot'].girder_assetstore = GirderAssetstoreResource()
+
+        plugin.registerPluginStaticContent(
+            plugin='girder_assetstore',
+            css=[],
+            js=['/girder-plugin-girder-assetstore.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
+        )

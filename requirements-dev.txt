@@ -1,5 +1,6 @@
-girder>=3.2.3
-girder-jobs>=3.2.3
+girder>=5.0.0a5.dev168
+girder-jobs>=5.0.0a5.dev168
+pytest-girder>=5.0.0a5.dev168
 
 pip>=9
 tox

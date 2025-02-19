@@ -1,7 +1,7 @@
 import collections
 import functools
+import logging
 
-from girder import logger
 from girder.api.rest import setResponseHeader
 from girder.exceptions import ValidationException
 from girder.models.file import File
@@ -13,6 +13,8 @@ from girder_client import GirderClient, HttpError
 BUF_SIZE = 65536
 
 GIRDER_ASSETSTORE_META_KEY = 'girder_assetstore_meta'
+
+logger = logging.getLogger(__name__)
 
 
 # provide caching for authenticated GirderClient instances

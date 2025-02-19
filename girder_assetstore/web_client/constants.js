@@ -1,3 +1,4 @@
-import { AssetstoreType } from '@girder/core/constants';
+/* global girder */
+const { AssetstoreType } = girder.constants;
 
 AssetstoreType.GIRDER = 'girder';

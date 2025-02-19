@@ -1,11 +1,12 @@
+/* global girder */
 import _ from 'underscore';
-
-import AssetstoresView from '@girder/core/views/body/AssetstoresView';
-import { AssetstoreType } from '@girder/core/constants';
-import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import GirderAssetstoreImportButtonTemplate from '../templates/girderAssetstoreImportButton.pug';
 import GirderAssetstoreCardTemplate from '../templates/girderAssetstoreCard.pug';
+
+const AssetstoresView = girder.views.body.AssetstoresView;
+const { AssetstoreType } = girder.constants;
+const { wrap } = girder.utilities.PluginUtils;
 
 wrap(AssetstoresView, 'render', function (render) {
     render.call(this);

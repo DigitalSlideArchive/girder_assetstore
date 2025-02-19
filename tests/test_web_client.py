@@ -4,10 +4,13 @@ import tempfile
 import pytest
 
 
+@pytest.mark.skip(reason='Client tests are removed in Girder 5')
 @pytest.mark.girder()
 @pytest.mark.girder_client()
 @pytest.mark.plugin('girder_assetstore')
 def testGirderAssetstoreClient(boundServer, fsAssetstore, db):
+    return # TODO: re-create client test for Girder 5
+
     from pytest_girder.web_client import runWebClientTest
 
     spec = os.path.join(os.path.dirname(__file__), 'web_client_specs', 'girderAssetstoreSpec.js')

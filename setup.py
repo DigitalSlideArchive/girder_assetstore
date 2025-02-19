@@ -4,14 +4,14 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    'girder>=3.2.3',
-    'girder-jobs>=3.2.3',
-    'girder-client>=3.2.3',
+    'girder>=5.0.0a5.dev168',
+    'girder-jobs>=5.0.0a5.dev168',
+    'girder-client>=5.0.0a5.dev168',
 ]
 
 setup(
     name='girder_assetstore',
-    version='0.1.0',
+    version='0.2.0',
     description='A Girder plugin to connect remote Girder instances as Assetstores.',
     long_description=readme,
     long_description_content_type='text/markdown',

@@ -104,6 +104,9 @@ const GirderAssetstoreImportView = View.extend({
     }
 });
 
-assetstoreImportViewMap[AssetstoreType.GIRDER] = GirderAssetstoreImportView;
+// This can be null if the base view is not the main Girder application
+if (assetstoreImportViewMap) {
+    assetstoreImportViewMap[AssetstoreType.GIRDER] = GirderAssetstoreImportView;
+}
 
 export default GirderAssetstoreImportView;
